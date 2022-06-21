@@ -4,6 +4,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.Keys;
 
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -22,25 +23,27 @@ public class OrderTest {
 
     @Test
     public void shouldSendOrder() {
-//        LocalDate date = LocalDate.now();
-//        LocalDate newDate = date.plusDays(4);
-//        int year = newDate.getYear();
-//        int month = newDate.getMonthValue();
-//        int day = newDate.getDayOfMonth();
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-//        String text = newDate.format(formatter);
-//        LocalDate parsedDate = LocalDate.parse(text, formatter);
+        String planningDate = generateDate(4);
 
         Configuration.holdBrowserOpen = true;
         open("http://localhost:9999/");
         SelenideElement form = $(".form");
         form.$("[data-test-id=city] input").val("Тверь");
-        //form.$("[data-test-id=date] input").clear();
-        //form.$("[data-test-id=date] input").val(text);
+        form.$("[data-test-id='date'] input").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+        form.$("[data-test-id='date'] input").val(planningDate);
         form.$("[data-test-id=name] input").val("Иван Петров");
         form.$("[data-test-id=phone] input").val("+79887554433");
         form.$("[data-test-id=agreement]").click();
         form.$(byText("Забронировать")).click();
-        $("[data-test-id=notification]").shouldBe(Condition.appear, Duration.ofSeconds(15));
+        //$("[data-test-id=notification]").shouldBe(Condition.appear, Duration.ofSeconds(15));
+        $(".notification__content")
+                .shouldHave(Condition.text("Встреча успешно забронирована на " + planningDate), Duration.ofSeconds(15))
+                .shouldBe(Condition.visible);
+    }
+
+    public String generateDate(int days) {
+        return LocalDate.now().plusDays(days).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
     }
 }
+
+
